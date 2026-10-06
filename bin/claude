@@ -1,0 +1,89 @@
+#!/bin/sh
+# Runs the real Claude Code so that its Up arrow recalls only the prompts of
+# the sessions this process runs, not those of every Claude in the project.
+# Put this directory before Claude's own in PATH. CLAUDE_OWN_HISTORY_REAL
+# names the real binary when the PATH search finds the wrong one.
+set -eu
+
+self=$(realpath "$0")
+root=$(dirname "$(dirname "$self")")
+
+real=${CLAUDE_OWN_HISTORY_REAL:-}
+if [ -z "$real" ]; then
+  old_ifs=$IFS
+  IFS=:
+  for dir in $PATH; do
+    candidate=$dir/claude
+    if [ -x "$candidate" ] && [ ! -d "$candidate" ] && [ "$(realpath "$candidate")" != "$self" ]; then
+      real=$candidate
+      break
+    fi
+  done
+  IFS=$old_ifs
+fi
+if [ -z "$real" ]; then
+  echo "claude-own-history: no other claude found in PATH; set CLAUDE_OWN_HISTORY_REAL" >&2
+  exit 127
+fi
+
+# Only an interactive session has an Up arrow. Print mode, subcommands,
+# --help/--version and pipes run Claude untouched. A caller's own --settings
+# is left alone too, since a second --settings flag might replace it.
+interactive=1
+[ -t 0 ] && [ -t 1 ] || interactive=0
+case ${1-} in
+  "" | -*) ;;
+  *) interactive=0 ;; # a subcommand such as `mcp` or `update`
+esac
+for arg in "$@"; do
+  case $arg in
+    -p | --print | --print=* | -h | --help | -v | --version | --settings | --settings=*) interactive=0 ;;
+  esac
+done
+if [ "$interactive" = 0 ]; then
+  exec "$real" "$@"
+fi
+
+state=${XDG_STATE_HOME:-$HOME/.local/state}/claude-own-history
+mkdir -p "$state"
+chmod 700 "$state"
+
+# Files of a Claude that died without its exit handler (kill -9, a crash).
+for file in "$state"/*.events "$state"/*.view.jsonl; do
+  [ -e "$file" ] || continue
+  pid=${file##*/}
+  pid=${pid%%-*}
+  kill -0 "$pid" 2>/dev/null || rm -f "$file"
+done
+
+# exec keeps this shell's pid for Claude, so the pid names Claude's files.
+token=$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')
+mailbox=$state/$$-$token.events
+: >"$mailbox"
+chmod 600 "$mailbox"
+
+# The hook reports the session id whenever one starts, resumes or forks,
+# including `--continue` and the /resume picker. Its command names this
+# process's mailbox, so a nested Claude cannot write into it. The state path
+# must not contain a single quote, which would break the quoting below.
+case $mailbox in
+  *"'"* | *'"'* | *'\'*)
+    echo "claude-own-history: unsupported character in $mailbox" >&2
+    exec "$real" "$@"
+    ;;
+esac
+settings=$(printf '{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"cat >> '"'"'%s'"'"'; echo >> '"'"'%s'"'"'"}]}]}}' "$mailbox" "$mailbox")
+
+# Bun splits BUN_OPTIONS on spaces, so the preload path must have none.
+case $root in
+  *" "*)
+    echo "claude-own-history: the install path contains a space: $root" >&2
+    exec "$real" "$@"
+    ;;
+esac
+
+CLAUDE_OWN_HISTORY_BUN_OPTIONS=${BUN_OPTIONS:-}
+CLAUDE_OWN_HISTORY_MAILBOX=$mailbox
+BUN_OPTIONS="${BUN_OPTIONS:+$BUN_OPTIONS }--preload $root/lib/preload.js"
+export CLAUDE_OWN_HISTORY_BUN_OPTIONS CLAUDE_OWN_HISTORY_MAILBOX BUN_OPTIONS
+exec "$real" --settings "$settings" "$@"
