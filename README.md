@@ -17,6 +17,10 @@ Put `bin/` before Claude's own launcher (`~/.local/bin/claude`) in `PATH`:
 export PATH="$HOME/personal_projects/claude-own-history/bin:$PATH"
 ```
 
+Add it in `.zshrc` (or `.bashrc`) after anything that rewrites `PATH`, such
+as `mise activate`; check with `which -a claude` in a new terminal. Shells
+started before that keep running Claude untouched.
+
 The wrapper finds the next `claude` in `PATH`; set `CLAUDE_OWN_HISTORY_REAL`
 to the real binary if it finds the wrong one. The install path must not
 contain a space. Uninstall by removing it from `PATH`.
