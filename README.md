@@ -83,6 +83,20 @@ two sessions through the wrapper with one prompt each, then `claude
 --continue`; Up shows only the continued session's prompt, while a plain
 `claude` there shows both.
 
+## Platforms
+
+- macOS: tested end to end (Claude Code 2.1.291).
+- Linux: the native build behaves the same as far as this tool depends on
+  it. Checked in `ubuntu:24.04` with Claude Code 2.1.291: the binary honours
+  `BUN_OPTIONS=--preload`, the preload sees `/$bunfs/root/cli`, the history
+  reader opens the file with `fs/promises` `open(path, "r")`, the
+  `readForProject`/`countForProject`/`readTimestamped` methods exist, and the
+  preload's `open` is installed. The interactive Up arrow itself was not
+  tried there (that needs a login).
+- An npm-installed Claude that runs on Node ignores `BUN_OPTIONS`, so it runs
+  untouched and keeps the shared history.
+- Windows is not supported (the wrapper is a POSIX shell script).
+
 ## License
 
 Apache-2.0, see `LICENSE`.
