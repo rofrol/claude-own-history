@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.1.0 -->
+<!-- AGENTS.md version: 1.6.1 -->
 
 # Architecture and Maintenance Policy
 
@@ -215,6 +215,12 @@ Agent tool use follows the same boundaries:
   interactions between modules.
 - Do not use a growing collection of narrow regression tests as a substitute
   for identifying and specifying the underlying rule.
+- When a lifecycle is held in flags or pending operations that change
+  together and permit illegal combinations, give it one explicit state type
+  with named transitions, keep the durable record as its source of truth
+  (Rule 10), and test that illegal transitions are rejected. Do not add
+  reducers, transition tables or frameworks to linear, single-owner or
+  ephemeral code; a plain enum often suffices.
 
 ### 5. Record Why Decisions Were Made
 
@@ -286,6 +292,29 @@ fewest lines. Read and trace the affected code before selecting a step.
   Prefer removing exceptional paths over hiding them behind helpers or
   abstractions. Do not force unlike cases together when their contracts,
   failure behavior, or security requirements are materially different.
+- Trace a symptom to its cause, also across repositories the user owns,
+  before adding a local adapter, wrapper, special case or retry; fix it
+  where it lives, through that repository's own TODO and approval rules
+  (this grants no approval). For code the user does not own,
+  first classify the behavior against upstream's documentation and upstream
+  HEAD: a bug violates its documented contract; a documented limitation or
+  unsupported feature is not a bug. Writing our code within a tool's
+  documented subset is conformance, not a workaround; cite the upstream
+  document or issue next to it. For a bug, never add a local workaround in
+  our tree (adapter, wrapper, special case, retry, source contortion or
+  build-time patch): fix it in a fork under the user's account, on a branch
+  from the pinned upstream version, with a regression test that fails
+  before the fix, and open an upstream PR (or comment on the existing
+  issue) linking the reproducer. If upstream HEAD already fixes it, use or
+  backport that fix in the fork. A project builds from a fork only by a
+  pinned commit, recorded with its upstream base and PR, after the user
+  approves the change of inputs; for a bootstrap chain the changed seed
+  inputs go into a decision record. The fork's maintainer rebases it and
+  takes upstream security fixes; the fork is retired when an upstream
+  release with the fix is adopted. If upstream rejects or ignores the PR,
+  the user decides whether to keep the fork or replace the dependency; a
+  rejection never licenses a local workaround. Work inside an existing fork
+  follows that fork's own rules. None of this licenses a rewrite.
 - Judge complexity by how much knowledge is required to understand and safely
   change the system, not by line counts, function length, file size, class
   count, or similar proxy metrics.
@@ -378,9 +407,50 @@ Measure progress by reduced complexity and delivered behavior, not lines added.
   useful. Then wait for an observable event or condition instead of a duration,
   retry an idempotent action until its effect is observed, publish data
   atomically, and report the awaited condition and observed state on timeout.
+- Scaling work, iterations, repetitions, or concurrency to make a race
+  likely is a delay in disguise: allowed as a labelled diagnostic stress loop,
+  never as the regression test for a fix. A regression test for a concurrency
+  fix forces the interleaving with synchronization that waits for a positive
+  event (a latch, a test hook), shows that the racy path was taken, and is
+  recorded failing on the unfixed code and passing with the fix. If a
+  candidate test passes on the unfixed code, find the missing trigger or
+  assertion; do not enlarge it.
 - Lengthen time only for a real external deadline, a rate limit, polling an
   external service, designed backoff, or measured slow hardware, and state that
-  reason next to the value.
+  reason next to the value. "Measured" means the label states the measurement.
+- Periodic catch-up of one's own events is a violation, whatever it is called
+  (sweep, safety net, watchdog, catch-up, reconcile loop). A timer-driven
+  rescan, resend, or repair of internally produced or lost events is not a fix.
+  Instead keep durable state as the source of truth, persist the cursor or
+  progress before acknowledging, reconcile when producing events, at startup,
+  and at handoff, and treat notifications only as wake-ups for consumers.
+  Correct the missing producer, consumer, or acknowledgement path. Polling or
+  reconciliation of an external system must name that external producer and
+  never claim to recover one's own lost events.
+- An interval is allowed for a read-only observer only over state produced
+  outside its own system that sends no event (a hung OS process, free disk
+  space, the wall clock), naming that producer. It never re-checks state its
+  own pipeline wrote, read-only or not, and what it finds on the interval
+  wakes no agent and repairs nothing. A predicate over one's own state that
+  only the interval catches is a lost-event bug in its producer, consumer or
+  acknowledgement path.
+- This covers fixes and the options any report, review or question offers,
+  not only your own scripts and waits: never offer a longer timeout, a sleep,
+  a blind retry or a debounce as a fix or an option for an asynchronous bug.
+  Until its cause is found, treat a timing-sensitive failure (a lost event, a
+  timeout, a flaky result) as asynchronous. A reason label on a time constant
+  inside a fix, as opposed to a test harness or tooling, needs agreement from
+  the human directing the session or the agent that delegated the work, given
+  the evidence, before it is added; without it, leave the constant out and
+  report it. A label never serves to get past a delay check. Whoever passes on
+  another agent's report checks every option in it against this rule first
+  and drops or marks as rejected each one that breaks it. A caller synthesizing
+  model advice classifies every time-based element before recording it as
+  event-driven, a permitted external category with evidence, or none.
+- Use one wait command per wait; never retry a command that allocates a
+  resource on each run (a tab, a terminal, a process). When the wait mechanism
+  itself fails, check the status once and report instead of retrying. Bound
+  every loop you write in iterations.
 
 ## Change Procedure
 
@@ -465,4 +535,5 @@ pull-request description, omitting fields that do not apply:
 ## Provenance
 
 The intellectual sources of this policy are recorded in `docs/provenance-of-AGENTS.md`
-of the agents.md repository. They add no operational requirements.
+of the agent-kit repository (https://github.com/rofrol/agent-kit). They add
+no operational requirements.
