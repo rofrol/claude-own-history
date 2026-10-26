@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.9.1 -->
+<!-- AGENTS.md version: 1.10.0 -->
 
 # Architecture and Maintenance Policy
 
@@ -284,6 +284,21 @@ commit's message, never presented as done. A partly done item stays,
 rewritten to the work that remains. A significant durable decision the item
 made goes to a decision record as above, a smaller reason to the lighter
 locations; git history is the record of finished work.
+
+Where a repository keeps `TODO.md`, an agent changes the repository or acts
+outside it only for the first item of its approved work (the first item of
+`Next, in order` where the file has that section). Answering questions,
+reading, investigating and consulting are not such work; checks and edits
+that finish the first item belong to it. Before starting other work the
+human asks for, the agent adds it as the first item, in the human's words
+translated into English, or moves it there when it is listed further down,
+and commits `TODO.md` by path, with the human's reason, before the work
+begins. While an item is in progress, the requested work goes right after
+it instead and starts once that item is committed. Placing an item first
+grants no approval: an agent's own proposal or follow-up gets there only
+through the rules that approve it. Only one session at a time changes such a
+repository and its `TODO.md`, across all its worktrees; other sessions read
+and answer. This rule creates no `TODO.md` where a repository has none.
 
 ### 6. Minimize the Number of Concepts
 
