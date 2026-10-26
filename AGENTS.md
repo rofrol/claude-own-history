@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.9.0 -->
+<!-- AGENTS.md version: 1.9.1 -->
 
 # Architecture and Maintenance Policy
 
@@ -464,6 +464,9 @@ Measure progress by reduced complexity and delivered behavior, not lines added.
   atomically, and report the awaited condition and observed state on timeout.
   Every wait names the positive event or condition it waits for and what
   produces it, never a negative one ("idle for N", "no marker for N").
+  When a wait awaits an operation's end, its condition is a completion mark
+  the producer emits whatever the outcome (or the producer's exit), never the
+  expected outcome; judge the outcome after the wait returns.
 - Scaling work, iterations, repetitions, or concurrency to make a race
   likely is a delay in disguise: allowed as a labelled diagnostic stress loop,
   never as the regression test for a fix. A regression test for a concurrency
