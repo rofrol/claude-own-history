@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.8.0 -->
+<!-- AGENTS.md version: 1.8.1 -->
 
 # Architecture and Maintenance Policy
 
@@ -452,6 +452,8 @@ Measure progress by reduced complexity and delivered behavior, not lines added.
   useful. Then wait for an observable event or condition instead of a duration,
   retry an idempotent action until its effect is observed, publish data
   atomically, and report the awaited condition and observed state on timeout.
+  Every wait names the positive event or condition it waits for and what
+  produces it, never a negative one ("idle for N", "no marker for N").
 - Scaling work, iterations, repetitions, or concurrency to make a race
   likely is a delay in disguise: allowed as a labelled diagnostic stress loop,
   never as the regression test for a fix. A regression test for a concurrency
