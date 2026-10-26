@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.8.1 -->
+<!-- AGENTS.md version: 1.9.0 -->
 
 # Architecture and Maintenance Policy
 
@@ -274,6 +274,16 @@ Record reasons and consequences, not a chronology of implementation. Do not
 create decision records for local, obvious, and easily reversible choices.
 Update or supersede a record when its assumptions change; do not silently
 contradict it.
+
+Where a repository keeps its open work in `TODO.md`, that file holds open
+work only: no Done section and no running log of finished items. A finished
+item is deleted in the commit that finishes it; that commit's message states
+the outcome and the check performed, or why none could be run. A dropped or
+superseded item is deleted with its disposition and reason in the deleting
+commit's message, never presented as done. A partly done item stays,
+rewritten to the work that remains. A significant durable decision the item
+made goes to a decision record as above, a smaller reason to the lighter
+locations; git history is the record of finished work.
 
 ### 6. Minimize the Number of Concepts
 
