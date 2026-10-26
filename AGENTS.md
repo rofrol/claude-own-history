@@ -1,13 +1,14 @@
-<!-- AGENTS.md version: 1.11.0 -->
+<!-- AGENTS.md version: 1.12.0 -->
 
 # Architecture and Maintenance Policy
 
 This policy is copied verbatim from https://github.com/rofrol/agent-kit and
 changed only there; rules specific to this repository go in
 `AGENTS.project.md` next to this file, never into this file. At session
-start, before your first action, check for `AGENTS.project.md` and the fork
-ledger `docs/forks.md` (Rule 6) next to this file and read each one that
-exists in full; they apply alongside this policy.
+start, before your first action, check for `AGENTS.project.md`, the
+decision ledger `DECISIONS.md` (Rule 5) and the fork ledger `docs/forks.md`
+(Rule 6) next to this file and read each one that exists in full; they apply
+alongside this policy.
 
 ## Purpose
 
@@ -270,6 +271,13 @@ Use the lightest durable location appropriate to the decision:
   condition for its removal; a bug in code we do not own is never worked
   around (Rule 6).
 
+The human's standing rulings, constraints and approvals that apply across
+tasks go to `DECISIONS.md` next to this file: a topical ledger, not a
+chronology, in which each entry states its date, its scope and conditions,
+and the human's words translated into English. Recording an approval never
+broadens it; a superseded entry is replaced, naming what replaced it. Each
+decision has one home, and other places link to it.
+
 Record reasons and consequences, not a chronology of implementation. Do not
 create decision records for local, obvious, and easily reversible choices.
 Update or supersede a record when its assumptions change; do not silently
@@ -278,12 +286,15 @@ contradict it.
 Where a repository keeps its open work in `TODO.md`, that file holds open
 work only: no Done section and no running log of finished items. A finished
 item is deleted in the commit that finishes it; that commit's message states
-the outcome and the check performed, or why none could be run. A dropped or
+the outcome, the check performed (or why none could be run) and the item's
+tag where it has one. A dropped or
 superseded item is deleted with its disposition and reason in the deleting
 commit's message, never presented as done. A partly done item stays,
-rewritten to the work that remains. A significant durable decision the item
-made goes to a decision record as above, a smaller reason to the lighter
-locations; git history is the record of finished work.
+rewritten to the work that remains. Before an item is deleted, a significant
+durable decision it made goes to a decision record and a standing ruling or
+approval to `DECISIONS.md`, as above, and a smaller reason to the lighter
+locations; a one-off answer about the item stays only in the finishing
+commit's message. Git history is the record of finished work.
 
 Where a repository keeps `TODO.md`, an agent changes the repository or acts
 outside it only for the first item of its approved work (the first item of
