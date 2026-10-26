@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.10.0 -->
+<!-- AGENTS.md version: 1.11.0 -->
 
 # Architecture and Maintenance Policy
 
@@ -564,6 +564,16 @@ For a non-trivial change:
 3. After implementation, run proportionate checks of behavior, invariants, and
    relevant integration or failure paths; tests target the contract, not the
    code. Inspect the change for accidental coupling and obsolete paths.
+
+Search and edit code with the narrowest tool: prefer an indexed search tool
+the session exposes over shell grep, scope the first search to the known
+directory, and read a known line range with the harness's file tool. Shell
+search is for a command's output, generated or untracked files, files outside
+the repository, counts, and commands a repository prescribes verbatim;
+routing repository content through a pipe or a script to search it is the
+same search. A bulk edit goes through a script that asserts each old string
+occurs exactly once, anchored on text; after a shell edit, check `git diff`
+and `git diff --check`, then compile or test.
 
 ## Stop and Ask
 
