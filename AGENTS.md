@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.13.0 -->
+<!-- AGENTS.md version: 1.14.0 -->
 
 # Architecture and Maintenance Policy
 
@@ -580,17 +580,20 @@ Search and edit code with the narrowest tool: prefer an indexed search tool
 the session exposes over shell grep, scope the first search to the known
 directory, and read code by symbol (the search tool's definition view)
 rather than by guessed line ranges. Read a range you will edit or cite with
-the harness's file tool, several ranges as parallel calls; where the harness
-has none, or to view several disjoint ranges at once, read with line
-numbers (`nl -ba FILE | sed -n 'A,Bp;C,Dp'`), never a source file through a
-bare `sed -n`, `head` or `cat`. After an edit, locate the code again before
-trusting earlier line numbers. Shell
-search is for a command's output, generated or untracked files, files outside
-the repository, counts, and commands a repository prescribes verbatim;
-routing repository content through a pipe or a script to search it is the
-same search. A bulk edit goes through a script that asserts each old string
-occurs exactly once, anchored on text; after a shell edit, check `git diff`
-and `git diff --check`, then compile or test.
+the harness's file tool, several ranges as parallel calls; a lookup you would
+append to a range read or an edit command goes to the indexed search as a
+separate tool call in the same message, in parallel with the read, never
+bundled into the shell command. Where the harness has none, or to view
+several disjoint ranges at once, read with line numbers
+(`nl -ba FILE | sed -n 'A,Bp;C,Dp'`), never a source file through a bare
+`sed -n`, `head` or `cat`. After an edit, locate the code again before
+trusting earlier line numbers. Shell search is for a command's output,
+generated or untracked files, files outside the repository, counts, and
+commands a repository prescribes verbatim; routing repository content
+through a pipe or a script to search it is the same search. A bulk edit
+goes through a script that asserts each old string occurs exactly once,
+anchored on text; after a shell edit, check `git diff` and
+`git diff --check`, then compile or test.
 
 ## Stop and Ask
 
