@@ -1,4 +1,4 @@
-<!-- AGENTS.md version: 1.12.0 -->
+<!-- AGENTS.md version: 1.13.0 -->
 
 # Architecture and Maintenance Policy
 
@@ -578,7 +578,13 @@ For a non-trivial change:
 
 Search and edit code with the narrowest tool: prefer an indexed search tool
 the session exposes over shell grep, scope the first search to the known
-directory, and read a known line range with the harness's file tool. Shell
+directory, and read code by symbol (the search tool's definition view)
+rather than by guessed line ranges. Read a range you will edit or cite with
+the harness's file tool, several ranges as parallel calls; where the harness
+has none, or to view several disjoint ranges at once, read with line
+numbers (`nl -ba FILE | sed -n 'A,Bp;C,Dp'`), never a source file through a
+bare `sed -n`, `head` or `cat`. After an edit, locate the code again before
+trusting earlier line numbers. Shell
 search is for a command's output, generated or untracked files, files outside
 the repository, counts, and commands a repository prescribes verbatim;
 routing repository content through a pipe or a script to search it is the
